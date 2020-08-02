@@ -3,16 +3,23 @@
     "Parameters" : {
       "NotebookRoleArn" : {
         "Type" : "String"
-      },
-     "BucketName" : {
-        "Type" : "String"
-      },
+      }
     },
     "Resources": {
+        
+      "S3PipelineBucket":{
+         "Type" : "AWS::S3::Bucket",
+         "Properties" : {
+            "BucketName": {
+                "Fn::Sub": "ml-pipeline-${AWS::AccountId}"
+            }
+         }
+      },
+          
       "StepFunctionsRole": {
          "Type": "AWS::IAM::Role",
          "Properties": {
-            "RoleName": "StepFunctionsWorkflowExecutionRole_DSSDK",
+            "RoleName": {"Fn::Sub": "StepFunctions_DSSDK-${AWS::AccountId}"},
             "AssumeRolePolicyDocument": {
                "Version" : "2012-10-17",
                "Statement": [ {
@@ -30,7 +37,7 @@
       "StepFunctionsRolePolicies": {
          "Type": "AWS::IAM::Policy",
          "Properties": {
-            "PolicyName": "StepFuntionsDSSDK",
+            "PolicyName": {"Fn::Sub": "StepFunctionsDSSDK-${AWS::AccountId}"},
             "PolicyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -102,7 +109,7 @@
       "GlueRole": {
          "Type": "AWS::IAM::Role",
          "Properties": {
-            "RoleName": "AWS-Glue-S3-Bucket-Access",
+            "RoleName": {"Fn::Sub": "AWS-Glue-S3-Bucket-Access-${AWS::AccountId}"},
             "AssumeRolePolicyDocument": {
                "Version" : "2012-10-17",
                "Statement": [ {
@@ -120,7 +127,7 @@
       "GlueRolePolicies": {
          "Type": "AWS::IAM::Policy",
          "Properties": {
-            "PolicyName": "Glue_S3_Access",
+            "PolicyName": {"Fn::Sub": "Glue_S3_Access-${AWS::AccountId}"},
             "PolicyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -130,7 +137,7 @@
                         "Action": ["s3:ListBucket"],
                         "Resource": {
                                       "Fn::Join": [
-                                        "", ["arn:aws:s3:::", {"Ref": "BucketName"}]
+                                        "", ["arn:aws:s3:::", {"Ref": "S3PipelineBucket"}]
                                       ]
                                     }
                     },
@@ -140,7 +147,7 @@
                         "Action": "s3:*Object",
                         "Resource": {
                                       "Fn::Join": [
-                                        "", ["arn:aws:s3:::", {"Ref": "BucketName"}, "/*"]
+                                        "", ["arn:aws:s3:::", {"Ref": "S3PipelineBucket"}, "/*"]
                                       ]
                                     }
                     },
@@ -165,7 +172,7 @@
       "LambdaRole": {
          "Type": "AWS::IAM::Role",
          "Properties": {
-            "RoleName": "query_training_status-role",
+            "RoleName": {"Fn::Sub": "query_training_status-role-${AWS::AccountId}"},
             "AssumeRolePolicyDocument": {
                "Version" : "2012-10-17",
                "Statement": [ {
@@ -178,15 +185,18 @@
             },
             "Path": "/",
             "ManagedPolicyArns" : [
-                                   'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole', 
-                                   'arn:aws:iam::aws:policy/AmazonSageMakerReadOnly' 
-                                  ],
+                                   "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole", 
+                                   "arn:aws:iam::aws:policy/AmazonSageMakerReadOnly"
+                                  ]
          }
-      },
+      }
                              
     },
 
     "Outputs" : {
+      "S3PipelineBucket" : {
+        "Value" : { "Ref" : "S3PipelineBucket"}
+      },
       "StepFunctionsRoleArn" : {
         "Value" : { "Fn::GetAtt" : [ "StepFunctionsRole", "Arn" ]}
       },
