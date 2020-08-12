@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: custom-lightgbm-inference
+Version: 0.1.0
+Summary: Custom container serving package for SageMaker.
+Home-page: UNKNOWN
+Author: UNKNOWN
+Author-email: UNKNOWN
+License: UNKNOWN
+Description: UNKNOWN
+Keywords: custom container serving package SageMaker
+Platform: UNKNOWN
