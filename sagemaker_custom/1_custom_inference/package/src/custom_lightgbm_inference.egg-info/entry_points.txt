@@ -1,3 +1,0 @@
-[console_scripts]
-serve = custom_lightgbm_inference.my_serving:main
-

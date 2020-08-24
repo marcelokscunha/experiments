@@ -4,6 +4,7 @@ import logging
 import os
 from os.path import join
 import sagemaker_containers
+from smexperiments import tracker
 import sys
 import torch
 import torch.distributed as dist
@@ -146,11 +147,14 @@ def train(args, tracker=None):
                 logger.info('Train Epoch: {} [{}/{} ({:.0f}%)], Train Loss: {:.6f};'.format(
                     epoch, batch_idx * len(data), len(train_loader.sampler),
                     100. * batch_idx / len(train_loader), loss.item()))
-        test(model, test_loader, device, tracker)
+                
+                tracker.log_metric(metric_name='Train Loss', value=loss.item(), iteration_number=epoch)
+                
+        test(model, test_loader, device, epoch, tracker=tracker)
     save_model(model, args.model_dir)
     
 
-def test(model, test_loader, device, tracker=None):
+def test(model, test_loader, device, epoch, tracker=None):
     model.eval()
     test_loss = 0
     correct = 0
@@ -165,6 +169,9 @@ def test(model, test_loader, device, tracker=None):
     test_loss /= len(test_loader.dataset)
     logger.info('Test Average loss: {:.4f}, Test Accuracy: {:.0f}%;\n'.format(
         test_loss, 100. * correct / len(test_loader.dataset)))
+    
+    tracker.log_metric(metric_name='Test Average loss', value=test_loss, iteration_number=epoch)
+    tracker.log_metric(metric_name='Test Accuracy', value=(100. * correct / len(test_loader.dataset)), iteration_number=epoch)
     
     
 def model_fn(model_dir):
@@ -224,4 +231,6 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     
-    train(args)
+    my_tracker = tracker.Tracker.load()
+    
+    train(args, tracker=my_tracker)
